@@ -4,9 +4,12 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.mylearnings.NetworkResponse
 import com.example.mylearnings.datalayer.NewsRepository
 import com.example.mylearnings.datalayer.Util.Companion.TAG
 import com.example.mylearnings.model.Article
+import kotlinx.coroutines.launch
 
 class NewsViewModel(private val newsRepository: NewsRepository): ViewModel() {
 
@@ -27,20 +30,24 @@ class NewsViewModel(private val newsRepository: NewsRepository): ViewModel() {
     private fun getBreakingNews() {
 
         // Display spinner
-        _spinner.postValue(true)
+        _spinner.value = true
 
-        newsRepository.getBreakingNewsFromNetwork(object : NewsRepository.NetworkCallback {
-            override fun onCompleted(articles: List<Article>) {
-                Log.d(TAG, "onCompleted: $articles")
-                Log.d(TAG, "ViewModel onCompleted: ${Thread.currentThread().name}")
-                _breakingNews.postValue(articles)
-                _spinner.postValue(false)
+        viewModelScope.launch {
+            val response = newsRepository.getBreakingNewsFromNetwork()
+            when (response) {
+                is NetworkResponse.Success -> {
+                    _breakingNews.value = response.data
+                    _spinner.value = false
+                }
+                is NetworkResponse.Error -> {
+                    Log.d(TAG, "getBreakingNews: Error response ${response.errorMessage}")
+                    _spinner.value = false
+                }
+                else -> {
+                    Log.d(TAG, "getBreakingNews: Default case")
+                }
             }
-
-            override fun onError(msg: String) {
-                Log.e(TAG, "onError: $msg")
-                _spinner.value = false
-            }
-        })
+            Log.d(TAG, "getBreakingNews viewModel: ${Thread.currentThread().name}")
+        }
     }
 }

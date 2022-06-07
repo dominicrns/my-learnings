@@ -1,35 +1,39 @@
 package com.example.mylearnings.datalayer
 
 import android.util.Log
+import com.example.mylearnings.NetworkResponse
 import com.example.mylearnings.datalayer.Util.Companion.TAG
-import com.example.mylearnings.model.Article
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-class NewsRepository {
+class NewsRepository(private val defaultDispatcher: CoroutineDispatcher = Dispatchers.IO) {
 
     /**
-     * Fetch breaking news from network in background thread using executor service
+     * Fetch breaking news from network in background thread using coroutine
      *
-     * Cannot place retrofit network operation in main thread. This will throw runtime exception
-     * android.os.NetworkOnMainThreadException
-     */
-    fun getBreakingNewsFromNetwork(callback: NetworkCallback) {
-        BACKGROUND.submit {
-            val networkResponse = RetrofitInstance.api.getBreakingNews().execute()
+     * var response: Response<NewsResponse>? = null
+            withContext(defaultDispatcher) {
             Log.d(TAG, "getBreakingNewsFromNetwork: ${Thread.currentThread().name}")
-            if (networkResponse.isSuccessful) {
-                val networkBody = networkResponse.body()
-                networkBody?.let {
-                    callback.onCompleted(it.articles)
-                }
+            val newsResponse = RetrofitInstance.api.getBreakingNews()
+            if (newsResponse.isSuccessful) {
+                response = newsResponse
             } else {
-                callback.onError(networkResponse.errorBody().toString())
+                response = newsResponse
             }
         }
-    }
-
-
-    interface NetworkCallback {
-        fun onCompleted(articles: List<Article>)
-        fun onError(msg: String)
+        return response
+     */
+    suspend fun getBreakingNewsFromNetwork() = withContext(defaultDispatcher) {
+        Log.d(TAG, "getBreakingNewsFromNetwork: ${Thread.currentThread().name}")
+        val newsResponse = RetrofitInstance.api.getBreakingNews()
+        if (newsResponse.isSuccessful) {
+            val newsBody = newsResponse.body()
+            newsBody?.let {
+                NetworkResponse.Success(it.articles)
+            }
+        } else {
+            NetworkResponse.Error(newsResponse.errorBody().toString())
+        }
     }
 }
