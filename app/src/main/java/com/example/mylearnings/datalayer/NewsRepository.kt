@@ -4,10 +4,12 @@ import android.util.Log
 import com.example.mylearnings.NetworkResponse
 import com.example.mylearnings.datalayer.Util.Companion.TAG
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class NewsRepository(private val defaultDispatcher: CoroutineDispatcher = Dispatchers.IO) {
+class NewsRepository @Inject constructor(
+    private val defaultDispatcher: CoroutineDispatcher,
+    private val networkInstance: NewsAPI) {
 
     /**
      * Fetch breaking news from network in background thread using coroutine
@@ -26,7 +28,7 @@ class NewsRepository(private val defaultDispatcher: CoroutineDispatcher = Dispat
      */
     suspend fun getBreakingNewsFromNetwork() = withContext(defaultDispatcher) {
         Log.d(TAG, "getBreakingNewsFromNetwork: ${Thread.currentThread().name}")
-        val newsResponse = RetrofitInstance.api.getBreakingNews()
+        val newsResponse = networkInstance.getBreakingNews()
         if (newsResponse.isSuccessful) {
             val newsBody = newsResponse.body()
             newsBody?.let {

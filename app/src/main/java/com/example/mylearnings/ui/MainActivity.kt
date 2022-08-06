@@ -4,20 +4,21 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import androidx.lifecycle.ViewModelProvider
+import androidx.activity.viewModels
 import com.example.mylearnings.databinding.ActivityMainBinding
-import com.example.mylearnings.datalayer.NewsRepository
 import com.example.mylearnings.datalayer.Util.Companion.TAG
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    private val newsViewModel: NewsViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        val newsViewModelFactory = NewsViewModelFactory(NewsRepository())
-        val newsViewModel = ViewModelProvider(this, newsViewModelFactory)[NewsViewModel::class.java]
 
         newsViewModel.breakingNews.observe(this) {
             Log.d(TAG, "onCreate: ${Thread.currentThread().name}")

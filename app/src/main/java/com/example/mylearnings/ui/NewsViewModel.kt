@@ -9,9 +9,12 @@ import com.example.mylearnings.NetworkResponse
 import com.example.mylearnings.datalayer.NewsRepository
 import com.example.mylearnings.datalayer.Util.Companion.TAG
 import com.example.mylearnings.model.Article
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class NewsViewModel(private val newsRepository: NewsRepository): ViewModel() {
+@HiltViewModel
+class NewsViewModel @Inject constructor(private val newsRepository: NewsRepository): ViewModel() {
 
     private val _breakingNews = MutableLiveData<List<Article>>()
 
