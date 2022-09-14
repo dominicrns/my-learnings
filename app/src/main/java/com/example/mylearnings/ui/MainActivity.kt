@@ -5,9 +5,14 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.mylearnings.databinding.ActivityMainBinding
 import com.example.mylearnings.datalayer.Util.Companion.TAG
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -20,18 +25,25 @@ class MainActivity : AppCompatActivity() {
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        newsViewModel.breakingNews.observe(this) {
-            Log.d(TAG, "onCreate: ${Thread.currentThread().name}")
-            it?.let {
-                for (article in it) {
-                    Log.d(TAG, "onCreate: ${article.title}")
-                    binding.title.text = article.title
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                newsViewModel.breakingNews.collectLatest {
+                    it.let {
+                        for (article in it) {
+                            Log.d(TAG, "onCreate: ${article.title}")
+                            binding.title.text = article.title
+                        }
+                    }
                 }
             }
         }
 
-        newsViewModel.spinner.observe(this) { value ->
-            binding.progressBar.visibility = if(value) View.VISIBLE else View.GONE
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                newsViewModel.spinner.collectLatest {
+                    binding.progressBar.visibility = if(it) View.VISIBLE else View.GONE
+                }
+            }
         }
     }
 }

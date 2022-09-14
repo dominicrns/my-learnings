@@ -10,30 +10,28 @@ import com.example.mylearnings.datalayer.NewsRepository
 import com.example.mylearnings.datalayer.Util.Companion.TAG
 import com.example.mylearnings.model.Article
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class NewsViewModel @Inject constructor(private val newsRepository: NewsRepository): ViewModel() {
 
-    private val _breakingNews = MutableLiveData<List<Article>>()
+    private val _breakingNews = MutableStateFlow<List<Article>>(listOf())
 
-    val breakingNews: LiveData<List<Article>>
-        get() = _breakingNews
+    val breakingNews = _breakingNews.asStateFlow()
 
-    private val _spinner = MutableLiveData<Boolean>()
+    private val _spinner = MutableStateFlow(true)
 
-    val spinner: LiveData<Boolean>
-        get() = _spinner
+    val spinner = _spinner.asStateFlow()
 
     init {
         getBreakingNews()
     }
 
     private fun getBreakingNews() {
-
-        // Display spinner
-        _spinner.value = true
 
         viewModelScope.launch {
             val response = newsRepository.getBreakingNewsFromNetwork()
